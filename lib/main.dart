@@ -9,6 +9,8 @@ import 'domain/usecases/scan_directory_usecase.dart';
 import 'presentation/state/scanner_notifier.dart';
 import 'presentation/views/home_view.dart';
 
+import 'domain/usecases/scan_similar_photos_usecase.dart';
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -19,6 +21,7 @@ void main() {
   final scanDirectoryUseCase = ScanDirectoryUseCase(repository);
   final deleteFilesUseCase = DeleteFilesUseCase(repository);
   final getStorageSpaceUseCase = GetStorageSpaceUseCase(repository);
+  final scanSimilarPhotosUseCase = ScanSimilarPhotosUseCase(repository);
 
   runApp(
     // 3. Inject State Manager (Presentation layer) using Provider at the app root
@@ -27,6 +30,7 @@ void main() {
         scanDirectoryUseCase: scanDirectoryUseCase,
         deleteFilesUseCase: deleteFilesUseCase,
         getStorageSpaceUseCase: getStorageSpaceUseCase,
+        scanSimilarPhotosUseCase: scanSimilarPhotosUseCase,
       ),
       child: const ClearApp(),
     ),

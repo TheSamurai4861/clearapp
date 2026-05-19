@@ -8,6 +8,8 @@ import 'package:clearapp/domain/entities/file_item.dart';
 import 'package:clearapp/domain/usecases/scan_directory_usecase.dart';
 import 'package:clearapp/domain/usecases/delete_files_usecase.dart';
 import 'package:clearapp/domain/usecases/get_storage_space_usecase.dart';
+import 'package:clearapp/domain/usecases/scan_similar_photos_usecase.dart';
+import 'package:clearapp/domain/entities/similar_image_group.dart';
 
 /// A mock implementation of the FileScannerRepository that avoids any real
 /// OS calls (like spawning PowerShell processes) during tests.
@@ -15,6 +17,16 @@ class FakeFileScannerRepository implements FileScannerRepository {
   @override
   Stream<ScanProgress> scanDirectory(String directoryPath) async* {
     yield ScanProgress.initial();
+  }
+
+  @override
+  Stream<SimilarPhotosProgress> scanSimilarPhotos(String directoryPath) async* {
+    yield SimilarPhotosProgress.initial();
+  }
+
+  @override
+  Stream<SimilarPhotosProgress> scanPhotoLibrary() async* {
+    yield SimilarPhotosProgress.initial();
   }
 
   @override
@@ -42,6 +54,7 @@ void main() {
     final scanDirectoryUseCase = ScanDirectoryUseCase(repository);
     final deleteFilesUseCase = DeleteFilesUseCase(repository);
     final getStorageSpaceUseCase = GetStorageSpaceUseCase(repository);
+    final scanSimilarPhotosUseCase = ScanSimilarPhotosUseCase(repository);
 
     // Build our app and trigger a frame with the ScannerNotifier provider.
     await tester.pumpWidget(
@@ -50,6 +63,7 @@ void main() {
           scanDirectoryUseCase: scanDirectoryUseCase,
           deleteFilesUseCase: deleteFilesUseCase,
           getStorageSpaceUseCase: getStorageSpaceUseCase,
+          scanSimilarPhotosUseCase: scanSimilarPhotosUseCase,
         ),
         child: const ClearApp(),
       ),

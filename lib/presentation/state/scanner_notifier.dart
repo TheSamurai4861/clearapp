@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../domain/entities/file_item.dart';
+import '../../domain/entities/similar_image_group.dart';
 import '../../domain/repositories/file_scanner_repository.dart';
 import '../../domain/usecases/scan_directory_usecase.dart';
 import '../../domain/usecases/delete_files_usecase.dart';
 import '../../domain/usecases/get_storage_space_usecase.dart';
+import '../../domain/usecases/scan_similar_photos_usecase.dart';
 
 /// Presentation State Manager for the duplicate scanner application.
 /// Uses standard Flutter [ChangeNotifier] to ensure decoupled, reactive UI updates.
@@ -12,26 +14,33 @@ class ScannerNotifier extends ChangeNotifier {
   final ScanDirectoryUseCase _scanDirectoryUseCase;
   final DeleteFilesUseCase _deleteFilesUseCase;
   final GetStorageSpaceUseCase _getStorageSpaceUseCase;
+  final ScanSimilarPhotosUseCase _scanSimilarPhotosUseCase;
 
   String? _selectedDirectory;
   StorageSpaceInfo? _storageSpaceInfo;
   ScanProgress? _scanProgress;
+  SimilarPhotosProgress? _similarPhotosProgress;
   DeletionResult? _deletionResult;
   
   bool _isScanning = false;
+  bool _isScanningSimilar = false;
   bool _isDeleting = false;
   List<DuplicateGroup> _duplicates = [];
+  List<SimilarImageGroup> _similarGroups = [];
   String _statusMessage = 'Prêt à numériser';
   StreamSubscription<ScanProgress>? _scanSubscription;
+  StreamSubscription<SimilarPhotosProgress>? _similarPhotosSubscription;
   StreamSubscription<DeletionResult>? _deletionSubscription;
 
   ScannerNotifier({
     required ScanDirectoryUseCase scanDirectoryUseCase,
     required DeleteFilesUseCase deleteFilesUseCase,
     required GetStorageSpaceUseCase getStorageSpaceUseCase,
+    required ScanSimilarPhotosUseCase scanSimilarPhotosUseCase,
   })  : _scanDirectoryUseCase = scanDirectoryUseCase,
         _deleteFilesUseCase = deleteFilesUseCase,
-        _getStorageSpaceUseCase = getStorageSpaceUseCase {
+        _getStorageSpaceUseCase = getStorageSpaceUseCase,
+        _scanSimilarPhotosUseCase = scanSimilarPhotosUseCase {
     fetchStorageSpace();
   }
 
@@ -39,10 +48,13 @@ class ScannerNotifier extends ChangeNotifier {
   String? get selectedDirectory => _selectedDirectory;
   StorageSpaceInfo? get storageSpaceInfo => _storageSpaceInfo;
   ScanProgress? get scanProgress => _scanProgress;
+  SimilarPhotosProgress? get similarPhotosProgress => _similarPhotosProgress;
   DeletionResult? get deletionResult => _deletionResult;
   bool get isScanning => _isScanning;
+  bool get isScanningSimilar => _isScanningSimilar;
   bool get isDeleting => _isDeleting;
   List<DuplicateGroup> get duplicates => _duplicates;
+  List<SimilarImageGroup> get similarGroups => _similarGroups;
   String get statusMessage => _statusMessage;
 
   /// Retrieves the device storage info.
@@ -59,7 +71,9 @@ class ScannerNotifier extends ChangeNotifier {
   void selectDirectory(String path) {
     _selectedDirectory = path;
     _duplicates = [];
+    _similarGroups = [];
     _scanProgress = null;
+    _similarPhotosProgress = null;
     _deletionResult = null;
     _statusMessage = 'Dossier sélectionné, prêt à analyser';
     notifyListeners();
@@ -110,6 +124,58 @@ class ScannerNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Starts the similar photos scanning engine.
+  void startSimilarPhotosScan({String? path, bool scanLibrary = false}) {
+    if (_isScanningSimilar || _isDeleting) return;
+
+    final scanPath = path ?? _selectedDirectory;
+    if (!scanLibrary && scanPath == null) return;
+
+    _isScanningSimilar = true;
+    _similarGroups = [];
+    _deletionResult = null;
+    _similarPhotosProgress = SimilarPhotosProgress.initial();
+    _statusMessage = 'Initialisation de l\'analyse des photos...';
+    notifyListeners();
+
+    _similarPhotosSubscription?.cancel();
+    
+    final Stream<SimilarPhotosProgress> stream = scanLibrary
+        ? _scanSimilarPhotosUseCase.photoLibrary()
+        : _scanSimilarPhotosUseCase(scanPath!);
+
+    _similarPhotosSubscription = stream.listen(
+      (progress) {
+        _similarPhotosProgress = progress;
+        _similarGroups = progress.similarGroups;
+        _statusMessage = progress.currentItemScanned;
+
+        if (progress.isCompleted) {
+          _isScanningSimilar = false;
+          _statusMessage = 'Analyse terminée ! ${progress.groupsFound} groupes de photos similaires trouvés.';
+        }
+        notifyListeners();
+      },
+      onError: (error) {
+        _isScanningSimilar = false;
+        _statusMessage = 'Erreur pendant l\'analyse des photos : $error';
+        notifyListeners();
+      },
+      onDone: () {
+        _isScanningSimilar = false;
+        notifyListeners();
+      },
+    );
+  }
+
+  /// Cancels an ongoing similar photos scan.
+  void cancelSimilarPhotosScan() {
+    _similarPhotosSubscription?.cancel();
+    _isScanningSimilar = false;
+    _statusMessage = 'Analyse des photos annulée';
+    notifyListeners();
+  }
+
   /// Toggles individual file selection for deletion in a duplicate group.
   void toggleFileSelection(FileItem file) {
     file.isSelected = !file.isSelected;
@@ -140,6 +206,20 @@ class ScannerNotifier extends ChangeNotifier {
         file.isSelected = false;
       }
     }
+    for (var group in _similarGroups) {
+      for (var file in group.images) {
+        file.isSelected = false;
+      }
+    }
+    notifyListeners();
+  }
+
+  /// Selects a specific image in a similar group to KEEP (makes its isSelected = false),
+  /// and selects all other images in that group for DELETION (makes their isSelected = true).
+  void selectImageInSimilarGroup(SimilarImageGroup group, FileItem selectedImage) {
+    for (var img in group.images) {
+      img.isSelected = (img.path != selectedImage.path);
+    }
     notifyListeners();
   }
 
@@ -153,18 +233,25 @@ class ScannerNotifier extends ChangeNotifier {
         }
       }
     }
+    for (var group in _similarGroups) {
+      for (var file in group.images) {
+        if (file.isSelected) {
+          selected.add(file);
+        }
+      }
+    }
     return selected;
   }
 
-  /// Calculates the total size of all currently selected duplicate files.
+  /// Calculates the total size of all currently selected duplicate/similar files.
   int get selectedDeletionSize {
     return selectedFilesToDelete.fold(0, (sum, file) => sum + file.size);
   }
 
-  /// Deletes the selected duplicate files.
+  /// Deletes the selected duplicate and similar files.
   Future<void> executeDeletion() async {
     final filesToDelete = selectedFilesToDelete;
-    if (filesToDelete.isEmpty || _isScanning || _isDeleting) return;
+    if (filesToDelete.isEmpty || _isScanning || _isScanningSimilar || _isDeleting) return;
 
     _isDeleting = true;
     _statusMessage = 'Suppression en cours...';
@@ -215,8 +302,23 @@ class ScannerNotifier extends ChangeNotifier {
         ));
       }
     }
-
     _duplicates = updatedGroups;
+
+    final List<SimilarImageGroup> updatedSimilar = [];
+    for (var group in _similarGroups) {
+      final List<FileItem> remainingImages = group.images.where((f) => !deletedPaths.contains(f.path)).toList();
+      
+      // If there's still more than 1 file in the similar group, it remains in the similar photo list
+      if (remainingImages.length > 1) {
+        updatedSimilar.add(SimilarImageGroup(
+          id: group.id,
+          reason: group.reason,
+          images: remainingImages,
+        ));
+      }
+    }
+    _similarGroups = updatedSimilar;
+
     notifyListeners();
   }
 
@@ -235,6 +337,7 @@ class ScannerNotifier extends ChangeNotifier {
   @override
   void dispose() {
     _scanSubscription?.cancel();
+    _similarPhotosSubscription?.cancel();
     _deletionSubscription?.cancel();
     super.dispose();
   }

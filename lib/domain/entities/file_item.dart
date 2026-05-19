@@ -6,6 +6,7 @@ class FileItem {
   final int size;
   final String? hash;
   final DateTime modifiedDate;
+  final String? id; // Null for local files, contains AssetEntity.id for Photo Library assets
   
   // Mutable state for selection during duplicate cleaning
   bool isSelected;
@@ -16,6 +17,7 @@ class FileItem {
     required this.size,
     this.hash,
     required this.modifiedDate,
+    this.id,
     this.isSelected = false,
   });
 
@@ -31,6 +33,7 @@ class FileItem {
     int? size,
     String? hash,
     DateTime? modifiedDate,
+    String? id,
     bool? isSelected,
   }) {
     return FileItem(
@@ -39,6 +42,7 @@ class FileItem {
       size: size ?? this.size,
       hash: hash ?? this.hash,
       modifiedDate: modifiedDate ?? this.modifiedDate,
+      id: id ?? this.id,
       isSelected: isSelected ?? this.isSelected,
     );
   }
