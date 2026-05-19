@@ -21,39 +21,54 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 2. Set up Java (required by some tools or plugins, though less critical for pure iOS, it is good practice for completeness)
+      # 2. Set up Java
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      # 3. Install Flutter
+      # 3. Install Flutter SDK
+      # We use the latest stable channel instead of a pinned old version
+      # to ensure native ARM64 support on macOS runners and full Xcode 15/16 compatibility.
       - name: Setup Flutter SDK
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.10.1' # Matching the exact project version from pubspec.yaml
           channel: 'stable'
           cache: true
           cache-key: "flutter-:os:-:channel:-:version:-:arch:-:hash:"
 
-      # 4. Install Dependencies
+      # 4. Update CocoaPods specs to ensure all dependencies are in sync
+      - name: Set up CocoaPods
+        run: |
+          pod repo update
+
+      # 5. Install Project Dependencies
       - name: Install Project Dependencies
         run: flutter pub get
 
-      # 5. Build iOS App (Without code signing for CI/CD checks)
-      # Building an unsigned IPA is standard in public/automated CI/CD to verify Xcode compilation
-      # without exposing premium App Store Developer profiles and private key credentials.
-      - name: Build Unsigned iOS IPA
+      # 6. Build Unsigned iOS App
+      # Compiling using "ios" is more reliable and robust on CI runners than "ipa"
+      # since it skips the heavy archiving step which often expects code-signing certificates.
+      - name: Build Unsigned iOS App Bundle
         run: |
-          flutter build ipa --no-codesign
+          flutter build ios --no-codesign
 
-      # 6. Compress and package the build outputs
-      # This saves the build directory as a structured artifact
+      # 7. Package the compiled .app into an installable/unsigned .ipa
+      # Placing the Runner.app inside a "Payload" directory and compressing it
+      # is the standard and elegant way to generate an unsigned .ipa for distribution/sideloading.
+      - name: Package Unsigned IPA
+        run: |
+          mkdir -p build/ios/iphoneos/Payload
+          cp -r build/ios/iphoneos/Runner.app build/ios/iphoneos/Payload/
+          cd build/ios/iphoneos
+          zip -r clearapp-ios-unsigned.ipa Payload
+
+      # 8. Upload the unsigned IPA as a release artifact
       - name: Archive Production Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: clearapp-ios-unsigned-ipa
-          path: build/ios/archive/Runner.xcarchive
+          path: build/ios/iphoneos/clearapp-ios-unsigned.ipa
           if-no-files-found: error
           retention-days: 7
