@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:clearapp/domain/entities/file_item.dart';
 import 'package:clearapp/data/repositories/local_file_scanner_repository.dart';
 
 void main() {
@@ -26,18 +25,18 @@ void main() {
     test('Should accurately identify duplicate files based on content hash', () async {
       // 1. Arrange: Create test files
       // Group A duplicates: Two files with identical text content "HELLO"
-      final fileA1 = File('${tempDir.path}/doc1.txt')..writeAsStringSync('HELLO');
-      final fileA2 = File('${tempDir.path}/doc1_copy.txt')..writeAsStringSync('HELLO');
+      File('${tempDir.path}/doc1.txt').writeAsStringSync('HELLO');
+      File('${tempDir.path}/doc1_copy.txt').writeAsStringSync('HELLO');
 
       // Group B duplicates: Two files with identical content "WORLD"
-      final fileB1 = File('${tempDir.path}/note.pdf')..writeAsStringSync('WORLD');
-      final fileB2 = File('${tempDir.path}/note_backup.pdf')..writeAsStringSync('WORLD');
+      File('${tempDir.path}/note.pdf').writeAsStringSync('WORLD');
+      File('${tempDir.path}/note_backup.pdf').writeAsStringSync('WORLD');
 
       // Unique files:
       // Unique size and content
-      final fileUnique1 = File('${tempDir.path}/unique.docx')..writeAsStringSync('UNIQUE_CONTENT_LOREM_IPSUM');
+      File('${tempDir.path}/unique.docx').writeAsStringSync('UNIQUE_CONTENT_LOREM_IPSUM');
       // Identical size to Group A ("HELLO" is 5 bytes) but different content ("12345")
-      final fileUnique2 = File('${tempDir.path}/different_content_same_size.txt')..writeAsStringSync('12345');
+      File('${tempDir.path}/different_content_same_size.txt').writeAsStringSync('12345');
 
       // 2. Act: Execute scanning stream
       final scanStream = repository.scanDirectory(tempDir.path);
@@ -101,8 +100,8 @@ void main() {
 
     test('Should ignore files inside system, cache, and hidden directories', () async {
       // Arrange: Create valid files in root
-      final fileValid1 = File('${tempDir.path}/valid1.txt')..writeAsStringSync('VALID_DUPLICATE');
-      final fileValid2 = File('${tempDir.path}/valid2.txt')..writeAsStringSync('VALID_DUPLICATE');
+      File('${tempDir.path}/valid1.txt').writeAsStringSync('VALID_DUPLICATE');
+      File('${tempDir.path}/valid2.txt').writeAsStringSync('VALID_DUPLICATE');
 
       // Create blacklisted directories and write duplicate-content files inside them
       final excludedPaths = [
@@ -140,8 +139,8 @@ void main() {
 
     test('Should only scan whitelisted user file extensions (PDF, images, video, docs, etc.) and ignore program files', () async {
       // Arrange: Create valid user files
-      final validUser1 = File('${tempDir.path}/photo.jpg')..writeAsStringSync('USER_MEDIA_DATA');
-      final validUser2 = File('${tempDir.path}/photo_copy.png')..writeAsStringSync('USER_MEDIA_DATA');
+      File('${tempDir.path}/photo.jpg').writeAsStringSync('USER_MEDIA_DATA');
+      File('${tempDir.path}/photo_copy.png').writeAsStringSync('USER_MEDIA_DATA');
 
       // Create files with invalid/non-user extensions but identical contents
       final invalidFiles = [

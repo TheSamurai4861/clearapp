@@ -37,7 +37,6 @@ class StorageBar extends StatelessWidget {
     final double standardUsedBytes = usedBytes - duplicateBytes;
 
     // Calculate percentage ratios
-    final double totalRatio = totalBytes > 0 ? 1.0 : 0.0;
     final double otherUsedRatio = totalBytes > 0 ? (standardUsedBytes.clamp(0.0, totalBytes) / totalBytes) : 0.0;
     final double duplicateRatio = totalBytes > 0 ? (duplicateBytes.clamp(0.0, totalBytes) / totalBytes) : 0.0;
     final double freeRatio = (1.0 - otherUsedRatio - duplicateRatio).clamp(0.0, 1.0);

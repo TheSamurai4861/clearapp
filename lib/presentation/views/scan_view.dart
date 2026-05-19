@@ -206,10 +206,10 @@ class ScanView extends StatelessWidget {
                                 child: Container(
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(AppBorderRadius.md),
-                                    boxShadow: (progress?.duplicatesFound ?? 0) > 0 ? AppShadows.neonGlow : null,
+                                    boxShadow: progress.duplicatesFound > 0 ? AppShadows.neonGlow : null,
                                   ),
                                   child: ElevatedButton(
-                                    onPressed: (progress?.duplicatesFound ?? 0) > 0
+                                    onPressed: progress.duplicatesFound > 0
                                         ? () {
                                             Navigator.of(context).pushReplacement(
                                               MaterialPageRoute(

@@ -118,7 +118,7 @@ class LocalFileScannerRepository implements FileScannerRepository {
           }
         } catch (_) {
           // Fallback: mark all as scanned but skip if cancelled or error
-          for (var item in libraryAssets) {
+          for (var _ in libraryAssets) {
             deletedCount++;
             controller.add(DeletionResult(
               filesDeleted: deletedCount,

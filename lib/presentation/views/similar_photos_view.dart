@@ -415,7 +415,6 @@ class _SimilarPhotosViewState extends State<SimilarPhotosView> {
     final isASelected = imgA.isSelected; // selected for deletion
     final isBSelected = imgB.isSelected; // selected for deletion
 
-    final savingsBytes = group.potentialSavings;
     final totalSavings = groups.fold(0, (sum, g) => sum + g.potentialSavings);
 
     return Column(

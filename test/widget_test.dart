@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:clearapp/main.dart';
@@ -9,7 +8,6 @@ import 'package:clearapp/domain/usecases/scan_directory_usecase.dart';
 import 'package:clearapp/domain/usecases/delete_files_usecase.dart';
 import 'package:clearapp/domain/usecases/get_storage_space_usecase.dart';
 import 'package:clearapp/domain/usecases/scan_similar_photos_usecase.dart';
-import 'package:clearapp/domain/entities/similar_image_group.dart';
 
 /// A mock implementation of the FileScannerRepository that avoids any real
 /// OS calls (like spawning PowerShell processes) during tests.
@@ -75,6 +73,6 @@ void main() {
     // Verify that the title and key components of the premium UI are displayed.
     expect(find.text('ClearApp'), findsOneWidget);
     expect(find.text('Nettoyeur de doublons premium'), findsOneWidget);
-    expect(find.text('Sélectionner le répertoire à nettoyer'), findsOneWidget);
+    expect(find.text('Choisir un dossier'), findsOneWidget);
   });
 }

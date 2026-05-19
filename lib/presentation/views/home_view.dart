@@ -125,9 +125,6 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
-    final Size size = MediaQuery.of(context).size;
-    final bool isDesktop = size.width > 700;
-
     return Scaffold(
       body: Stack(
         children: [
