@@ -321,7 +321,7 @@ class LocalFileScannerRepository implements FileScannerRepository {
       ));
 
       try {
-        final PermissionState permission = await PhotoManager.requestPermissionExtended();
+        final PermissionState permission = await PhotoManager.requestPermissionExtend();
         if (!permission.isAuth) {
           controller.addError("Accès à la bibliothèque de photos refusé.");
           controller.close();
@@ -357,7 +357,7 @@ class LocalFileScannerRepository implements FileScannerRepository {
         }
 
         final AssetPathEntity recentAlbum = paths.first;
-        final int totalAssets = await recentAlbum.assetCount;
+        final int totalAssets = await recentAlbum.assetCountAsync;
 
         if (totalAssets == 0) {
           // Empty album, simulate mock images

@@ -126,9 +126,7 @@ class _SimilarPhotosViewState extends State<SimilarPhotosView> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const RadarAnimation(
-              glowColor: Colors.pinkAccent,
-            ),
+            const RadarAnimation(),
             const SizedBox(height: AppSpacing.xxl),
             Text(
               'ANALYSE DE LA GALERIE EN COURS',
@@ -634,13 +632,13 @@ class _SimilarPhotosViewState extends State<SimilarPhotosView> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppBorderRadius.lg),
         border: Border.all(
-          color: keep ? Colors.emeraldAccent.withOpacity(0.4) : Colors.pinkAccent.withOpacity(0.2),
+          color: keep ? Colors.greenAccent.withOpacity(0.4) : Colors.pinkAccent.withOpacity(0.2),
           width: keep ? 2.0 : 1.5,
         ),
         boxShadow: keep
             ? [
                 BoxShadow(
-                  color: Colors.emeraldAccent.withOpacity(0.06),
+                  color: Colors.greenAccent.withOpacity(0.06),
                   blurRadius: 20,
                   spreadRadius: 1,
                 ),
@@ -689,7 +687,7 @@ class _SimilarPhotosViewState extends State<SimilarPhotosView> {
                       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 4),
                       decoration: BoxDecoration(
                         color: isDefaultRecommendation
-                            ? Colors.emeraldAccent.withOpacity(0.85)
+                            ? Colors.greenAccent.withOpacity(0.85)
                             : Colors.blueAccent.withOpacity(0.85),
                         borderRadius: BorderRadius.circular(4),
                       ),
@@ -712,7 +710,7 @@ class _SimilarPhotosViewState extends State<SimilarPhotosView> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 4),
                       decoration: BoxDecoration(
-                        color: keep ? Colors.emeraldAccent : Colors.pinkAccent,
+                        color: keep ? Colors.greenAccent : Colors.pinkAccent,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
@@ -751,7 +749,7 @@ class _SimilarPhotosViewState extends State<SimilarPhotosView> {
                       Text(
                         _formatBytes(item.size.toDouble()),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: keep ? Colors.emeraldAccent : Colors.pinkAccent,
+                              color: keep ? Colors.greenAccent : Colors.pinkAccent,
                               fontWeight: FontWeight.bold,
                             ),
                       ),
@@ -759,7 +757,7 @@ class _SimilarPhotosViewState extends State<SimilarPhotosView> {
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
-                    'Modifiée : ${_formatDate(item.modifiedDate)}',
+                     'Modifiée : ${_formatDate(item.modifiedDate)}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: AppColors.textSecondary,
                         ),
@@ -772,10 +770,10 @@ class _SimilarPhotosViewState extends State<SimilarPhotosView> {
                       notifier.selectImageInSimilarGroup(group, item);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: keep ? Colors.emeraldAccent : Colors.white.withOpacity(0.05),
+                      backgroundColor: keep ? Colors.greenAccent : Colors.white.withOpacity(0.05),
                       foregroundColor: keep ? AppColors.obsidian : Colors.white70,
                       elevation: keep ? 4 : 0,
-                      shadowColor: Colors.emeraldAccent.withOpacity(0.3),
+                      shadowColor: Colors.greenAccent.withOpacity(0.3),
                       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(AppBorderRadius.md),
