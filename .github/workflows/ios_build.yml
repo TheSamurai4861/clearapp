@@ -52,7 +52,7 @@ jobs:
       # since it skips the heavy archiving step which often expects code-signing certificates.
       - name: Build Unsigned iOS App Bundle
         run: |
-          flutter build ios --no-codesign
+          flutter build ios --no-codesign CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" PROVISIONING_PROFILE_REQUIRED=NO
 
       # 7. Package the compiled .app into an installable/unsigned .ipa
       # Placing the Runner.app inside a "Payload" directory and compressing it
